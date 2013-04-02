@@ -1,0 +1,2 @@
+(setq live-root-dir "~/emacs-live")
+(load "~/emacs-live/init.el")
