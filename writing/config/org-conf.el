@@ -83,15 +83,29 @@
               (""     "amssymb"   t)
               (""     "hyperref"  nil)))
 
+      (if (string-match "LATEX_PROJECT: kamban" (buffer-string))
+          (setq org-export-latex-default-packages-alist
+                '(
+                  )))
+
+      (if (string-match "LATEX_PROJECT: kamban" (buffer-string))
+          (setq org-export-latex-classes
+                (cons '("book"
+                        "\\documentclass[11pt,draft,twoside,a4paper]{kamban}"
+                        ("\\part{%s}" . "\\part*{%s}")
+                        ("\\chapter{%s}" . "\\chapter*{%s}")
+                        ("\\section{%s}" . "\\section*{%s}")
+                        ("\\subsection{%s}" . "\\subsection*{%s}")
+                        ("\\subsubsection{%s}" . "\\subsubsection*{%s}")
+                        ("\\paragraph{%s}" . "\\paragraph*{%s}")
+                        ("\\subparagraph{%s}" . "\\subparagraph*{%s}"))
+                      org-export-latex-classes)))
+
       (if (string-match "LATEX_LANG: tamil" (buffer-string))
           (setq org-export-latex-default-packages-alist
                 '(("" "fontspec" t)
                   ("" "xunicode" t)
                   ("" "xltxtra" t)
-                  ("" "rotating" t)
-                  ("american" "babel" t)
-                  ("babel" "csquotes" t)
-                  ("" "soul" t)
                   ("xetex" "hyperref" nil)
                   )))
 
