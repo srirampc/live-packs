@@ -1,5 +1,5 @@
 ;;(require 'org-install)
-;;(require 'org-latex)
+(require 'ox-latex)
 (setq org-clock-persist 'history)
 
 (defun is-leos? ()
