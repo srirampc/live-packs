@@ -26,7 +26,7 @@
 (defun org-mode-export-on-save-hook ()
   "Org mode to save as latex hook"
   (if (is-leos?)
-      (org-export-as-latex 3)))
+      (org-latex-export-to-latex)))
 
 (add-hook 'org-mode-hook
           (lambda ()
