@@ -43,6 +43,7 @@
 
 ;; Originally taken from Bruno Tavernier: http://thread.gmane.org/gmane.emacs.orgmode/31150/focus=31432
 ;; but adapted to use latexmk 4.20 or higher.
+;; updated to org-mode 8.05
 (defun my-auto-tex-cmd (inarg)
   "When exporting from .org with latex, automatically run latex,
      pdflatex, or xelatex as appropriate, using latexmk."
@@ -105,8 +106,9 @@
 
 (add-hook 'org-export-before-processing-hook 'my-auto-tex-parameters)
 
-(setq org-latex-classes
-      (cons '("aps-article"
+;; Custom article classes
+(add-to-list 'org-latex-classes
+             '("aps-article"
               "\\documentclass[11pt,article,oneside]{memoir}
               [DEFAULT-PACKAGES]
               [PACKAGES]
@@ -116,11 +118,10 @@
               ("\\subsection{%s}" . "\\subsection*{%s}")
               ("\\subsubsection{%s}" . "\\subsubsection*{%s}")
               ("\\paragraph{%s}" . "\\paragraph*{%s}")
-              ("\\subparagraph{%s}" . "\\subparagraph*{%s}"))
-            org-latex-classes))
+              ("\\subparagraph{%s}" . "\\subparagraph*{%s}")))
 
-(setq org-latex-classes
-      (cons '("kamban-book"
+(add-to-list 'org-latex-classes
+             '("kamban-book"
               "\\documentclass[11pt,draft,twoside,a4paper]{kamban}"
               ("\\part{%s}" . "\\part*{%s}")
               ("\\chapter{%s}" . "\\chapter*{%s}")
@@ -128,25 +129,22 @@
               ("\\subsection{%s}" . "\\subsection*{%s}")
               ("\\subsubsection{%s}" . "\\subsubsection*{%s}")
               ("\\paragraph{%s}" . "\\paragraph*{%s}")
-              ("\\subparagraph{%s}" . "\\subparagraph*{%s}"))
-            org-latex-classes))
+              ("\\subparagraph{%s}" . "\\subparagraph*{%s}")))
 
-(setq org-latex-classes
-      (cons '("tamil-article"
+(add-to-list 'org-latex-classes
+             '("tamil-article"
               "\\documentclass[11pt,article,oneside]{memoir}"
               ("\\section{%s}" . "\\section*{%s}")
               ("\\subsection{%s}" . "\\subsection*{%s}")
               ("\\subsubsection{%s}" . "\\subsubsection*{%s}")
               ("\\paragraph{%s}" . "\\paragraph*{%s}")
-              ("\\subparagraph{%s}" . "\\subparagraph*{%s}"))
-            org-latex-classes))
+              ("\\subparagraph{%s}" . "\\subparagraph*{%s}")))
 
-(setq org-latex-classes
-      (cons '("xelatex-article"
+(add-to-list 'org-latex-classes
+             '("xelatex-article"
               "\\documentclass[11pt,article,oneside]{memoir}"
               ("\\section{%s}" . "\\section*{%s}")
               ("\\subsection{%s}" . "\\subsection*{%s}")
               ("\\subsubsection{%s}" . "\\subsubsection*{%s}")
               ("\\paragraph{%s}" . "\\paragraph*{%s}")
-              ("\\subparagraph{%s}" . "\\subparagraph*{%s}"))
-            org-latex-classes))
+              ("\\subparagraph{%s}" . "\\subparagraph*{%s}")))
