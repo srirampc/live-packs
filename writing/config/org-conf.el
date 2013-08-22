@@ -2,7 +2,49 @@
 (require 'ox-latex)
 (setq org-clock-persist 'history)
 
-(defun is-leos? ()
+(defun org-insert-aps-article-header ()
+  "Insert header for APS Report"
+  (interactive)
+  (if (not (bolp)) (newline))
+  (insert "#+TITLE: Annual Progress Seminar Report
+#+AUTHOR: Sriram Ponnambalam C (10405602) Guide : Prof. Srinivas Aluru
+#+EMAIL:
+#+DATE:
+#+DESCRIPTION:
+#+KEYWORDS:
+#+LANGUAGE:  en
+#+OPTIONS:   H:3 num:t toc:t \\n:nil @:t ::t |:t ^:t -:t f:t *:t <:t
+#+OPTIONS:   TeX:t LaTeX:t skip:nil d:nil todo:t pri:nil tags:not-in-toc
+#+INFOJS_OPT: view:nil toc:nil ltoc:t mouse:underline buttons:0 path:http://orgmode.org/org-info.js
+#+EXPORT_SELECT_TAGS: export
+#+EXPORT_EXCLUDE_TAGS: noexport
+#+LINK_UP:
+#+LINK_HOME:
+#+XSLT:
+#+LaTeX_CLASS: aps-article
+#+LaTeX_CLASS_OPTIONS: [integrals, nointegrals, article, 11pt, a4paper]
+#+LATEX_HEADER: \\usepackage{geometry}
+#+LATEX_HEADER: \\usepackage{amsmath}
+#+LATEX_HEADER: \\usepackage[MnSymbol]{mathspec}
+#+LATEX_HEADER: \\usepackage{fontspec}
+#+LATEX_HEADER: \\usepackage{xltxtra}
+#+LATEX_HEADER: \\setprimaryfont{Minion Pro}
+#+LATEX_HEADER: \\setmainfont[Mapping=tex-text]{Minion Pro}
+#+LATEX_HEADER: \\setsansfont[Mapping=tex-text]{Myriad Pro}
+#+LATEX_HEADER: \\setmathsfont[Set=Greek,Uppercase=Italic,Lowercase=Italic]{Minion Pro}
+#+LATEX_HEADER: \\font\\TitleFont=\"Myriad Pro:letterspace=10,+smcp\" at 24 pt
+#+LATEX_HEADER: \\setcounter{secnumdepth}{2}
+#+LATEX_HEADER: \\geometry{a4paper, textwidth=6.5in, textheight=10in, marginparsep=7pt, marginparwidth=.6in}
+#+LaTeX_HEADER: \\usepackage{amsthm}
+#+LaTeX_HEADER: \\newtheorem{theorem}{Theorem}[section]
+#+LaTeX_HEADER: \\newtheorem{lemma}[theorem]{Lemma}
+#+LATEX_CMD: xelatex
+#+LATEX_EXPORT_ON_SAVE: t
+#+LATEX_CMD: xelatex
+#+LATEX_EXPORT_ON_SAVE: t
+"))
+
+(defun is-flag-set? (in-str)
   "Check if LEOS flag is set"
   (let ((leos-string
          (save-excursion
@@ -10,12 +52,17 @@
              (widen)
              (goto-char (point-min))
              (and (re-search-forward
-                   "^#\\+LATEX_EXPORT_ON_SAVE:[ \t]*\\([-/a-zA-Z]+\\)" nil t)
+                   (format "^#\\+%s:[ \t]*\\([-/a-zA-Z]+\\)"
+                           in-str) nil t)
                   (match-string 1))))))
     (if (and leos-string
              (string= leos-string "t"))
         t
       nil)))
+
+(defun is-leos? ()
+  "Check if LEOS flag is set"
+  (is-flag-set? "LATEX_EXPORT_ON_SAVE"))
 
 (defun org-insert-leos-option ()
   "Insert the Latex Export on Save option"
@@ -23,10 +70,22 @@
   (if (not (bolp)) (newline))
   (insert "#+LATEX_EXPORT_ON_SAVE: t"))
 
+(defun is-beamer-leos? ()
+  "Check if LEOS flag is set"
+  (is-flag-set? "LATEX_BEAMER_EXPORT_ON_SAVE"))
+
+(defun org-insert-beamer-leos-option ()
+  "Insert the Latex Export on Save option"
+  (interactive)
+  (if (not (bolp)) (newline))
+  (insert "#+LATEX_BEAMER_EXPORT_ON_SAVE: t"))
+
 (defun org-mode-export-on-save-hook ()
   "Org mode to save as latex hook"
   (if (is-leos?)
-      (org-latex-export-to-latex)))
+      (org-latex-export-to-latex))
+  (if (is-beamer-leos?)
+      (org-beamer-export-to-latex)))
 
 (add-hook 'org-mode-hook
           (lambda ()
