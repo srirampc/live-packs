@@ -148,3 +148,9 @@
               ("\\subsubsection{%s}" . "\\subsubsection*{%s}")
               ("\\paragraph{%s}" . "\\paragraph*{%s}")
               ("\\subparagraph{%s}" . "\\subparagraph*{%s}")))
+
+(org-babel-do-load-languages
+ 'org-babel-load-languages
+ '((latex . t)))
+
+(require 'ox-beamer)
