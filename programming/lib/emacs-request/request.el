@@ -5,7 +5,7 @@
 ;;   Free Software Foundation, Inc.
 
 ;; Author: Takafumi Arakaki <aka.tkf at gmail.com>
-;; Version: 0.2.0alpha1
+;; Version: 0.2.0
 
 ;; This file is NOT part of GNU Emacs.
 
@@ -48,7 +48,7 @@
   :group 'comm
   :prefix "request-")
 
-(defconst request-version "0.2.0alpha1")
+(defconst request-version "0.2.0")
 
 
 ;;; Customize variables
@@ -394,7 +394,7 @@ SYNC         (bool)   If `t', wait until request is done.  Default is `nil'.
 Callback functions STATUS, ERROR, COMPLETE and `cdr's in element of
 the alist STATUS-CODE take same keyword arguments listed below.  For
 forward compatibility, these functions must ignore unused keyword
-arguments (i.e., it's better to use `&allow-other-keys').::
+arguments (i.e., it's better to use `&allow-other-keys' [#]_).::
 
     (CALLBACK                      ; SUCCESS/ERROR/COMPLETE/STATUS-CODE
      :data          data           ; whatever PARSER function returns, or nil
@@ -402,6 +402,14 @@ arguments (i.e., it's better to use `&allow-other-keys').::
      :symbol-status symbol-status  ; success/error/timeout/abort/parse-error
      :response      response       ; request-response object
      ...)
+
+.. [#] `&allow-other-keys' is a special \"markers\" available in macros
+   in the CL library for function definition such as `defun*' and
+   `function*'.  Without this marker, you need to specify all arguments
+   to be passed.  This becomes problem when request.el adds new arguments
+   when calling callback functions.  If you use `&allow-other-keys'
+   (or manually ignore other arguments), your code is free from this
+   problem.  See info node `(cl) Argument Lists' for more information.
 
 Arguments data, error-thrown, symbol-status can be accessed by
 `request-response-data', `request-response-error-thrown',
@@ -467,6 +475,20 @@ of the response body.  So, for example, you can pass `json-read'
 to parse JSON object in the buffer.  To fetch whole response as a
 string, pass `buffer-string'.
 
+When using `json-read', it is useful to know that the returned
+type can be modified by `json-object-type', `json-array-type',
+`json-key-type', `json-false' and `json-null'.  See docstring of
+each function for what it does.  For example, to convert JSON
+objects to plist instead of alist, wrap `json-read' by `lambda'
+like this.::
+
+    (request
+     \"http://...\"
+     :parser (lambda ()
+               (let ((json-object-type 'plist))
+                 (json-read)))
+     ...)
+
 This is analogous to the `dataType' argument of jQuery.ajax_.
 Only this function can access to the process buffer, which
 is killed immediately after the execution of this function.
@@ -508,6 +530,7 @@ and requests.request_ (Python).
     (setq data (request--urlencode-alist data))
     (setq settings (plist-put settings :data data)))
   (when params
+    (assert (listp params) nil "PARAMS must be an alist.  Given: %S" params)
     (setq url (concat url (if (string-match-p "\\?" url) "&" "?")
                       (request--urlencode-alist params))))
   (setq settings (plist-put settings :url url))
@@ -662,13 +685,15 @@ then kill the current buffer."
       (unless done-p
         ;; This code should never be executed.  However, it occurs
         ;; sometimes with `url-retrieve' backend.
+        ;; FIXME: In Emacs 24.3.50 or later, this is always executed in
+        ;;        request-get-timeout test.  Find out if it is fine.
         (request-log 'error "Callback is not called when stopping process! \
 Explicitly calling from timer.")
         (when (buffer-live-p buffer)
           (destructuring-bind (&key code &allow-other-keys)
               (with-current-buffer buffer
                 (goto-char (point-min))
-                (request--parse-response-at-point))
+                (ignore-errors (request--parse-response-at-point)))
             (setf (request-response-status-code response) code)))
         (apply #'request--callback
                buffer
@@ -820,8 +845,9 @@ Currently it is used only for testing.")
       (expand-file-name "curl-cookie-jar" request-storage-directory)))
 
 (defconst request--curl-write-out-template
-  "\\n(:num-redirects %{num_redirects} :url-effective \"%{url_effective}\")")
-;; FIXME: should % be escaped for Windows?
+  (if (eq system-type 'windows-nt)
+      "\\n(:num-redirects %{num_redirects} :url-effective %{url_effective})"
+    "\\n(:num-redirects %{num_redirects} :url-effective \"%{url_effective}\")"))
 
 (defun request--curl-mkdir-for-cookie-jar ()
   (ignore-errors
@@ -836,6 +862,8 @@ Currently it is used only for testing.")
   (append
    (list request-curl "--silent" "--include"
          "--location"
+         ;; FIXME: test automatic decompression
+         "--compressed"
          ;; FIMXE: this way of using cookie might be problem when
          ;;        running multiple requests.
          "--cookie" cookie-jar "--cookie-jar" cookie-jar
@@ -977,6 +1005,11 @@ See \"set-cookie-av\" in http://www.ietf.org/rfc/rfc2965.txt")
       ;; FIXME: Does this make sense?  Is it possible to have multiple 100?
       (request--consume-100-continue))))
 
+(defun request--consume-200-connection-established ()
+  "Remove \"HTTP/* 200 Connection established\" header at the point."
+  (when (looking-at-p "HTTP/1\\.0 200 Connection established")
+    (delete-region (point) (progn (request--goto-next-body) (point)))))
+
 (defun request--curl-preprocess ()
   "Pre-process current buffer before showing it to user."
   (let (history)
@@ -984,6 +1017,7 @@ See \"set-cookie-av\" in http://www.ietf.org/rfc/rfc2965.txt")
         (request--curl-read-and-delete-tail-info)
       (goto-char (point-min))
       (request--consume-100-continue)
+      (request--consume-200-connection-established)
       (when (> num-redirects 0)
         (loop with case-fold-search = t
               repeat num-redirects
