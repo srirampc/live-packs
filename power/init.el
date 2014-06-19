@@ -7,7 +7,8 @@
 (live-load-config-file "bindings.el")
 (live-load-config-file "anything-conf.el")
 (live-load-config-file "theme-conf.el")
-(live-load-config-file "eproject-conf.el")
+;; (live-load-config-file "eproject-conf.el")
+(live-load-config-file "bookmarks-conf.el")
 
 ;; automatically load when changed outside
 (global-auto-revert-mode 1)

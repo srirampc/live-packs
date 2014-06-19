@@ -7,7 +7,7 @@
 
 (live-load-config-file "bindings.el")
 (live-load-config-file "hg-conf.el")
-(live-load-config-file "python-conf.el")
+;;(live-load-config-file "python-conf.el")
 (live-load-config-file "cc-conf.el")
 (live-load-config-file "ess-conf.el")
 (live-load-config-file "haskell-conf.el")
